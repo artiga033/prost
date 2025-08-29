@@ -206,14 +206,14 @@ mod chrono {
 
 #[cfg(feature = "serde")]
 mod serde {
+    use super::Duration;
+
     use core::{fmt, str::FromStr};
 
-    use serde::{
+    use ::serde::{
         de::{self, Visitor},
         Deserialize, Serialize,
     };
-
-    use crate::Duration;
 
     impl Serialize for Duration {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

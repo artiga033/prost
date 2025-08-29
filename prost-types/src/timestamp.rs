@@ -229,6 +229,52 @@ impl fmt::Display for Timestamp {
     }
 }
 
+#[cfg(feature = "serde")]
+mod serde {
+    use super::Timestamp;
+
+    use core::{fmt, str::FromStr};
+
+    use ::serde::{
+        de::{self, Visitor},
+        Deserialize, Serialize,
+    };
+
+    impl Serialize for Timestamp {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+        {
+            serializer.serialize_str(&self.to_string())
+        }
+    }
+    impl<'de> Deserialize<'de> for Timestamp {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: serde::Deserializer<'de>,
+        {
+            struct DurationVisitor;
+
+            impl<'de> Visitor<'de> for DurationVisitor {
+                type Value = Timestamp;
+
+                fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                    formatter.write_str("Timestamp in RFC-3339 format")
+                }
+
+                fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                where
+                    E: de::Error,
+                {
+                    Timestamp::from_str(v).map_err(de::Error::custom)
+                }
+            }
+
+            deserializer.deserialize_str(DurationVisitor)
+        }
+    }
+}
+
 #[cfg(kani)]
 mod proofs {
     use super::*;
